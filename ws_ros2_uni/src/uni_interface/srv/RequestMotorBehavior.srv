@@ -1,0 +1,5 @@
+int32 safety_stop
+int32 brake_on
+int32 brake_off
+---
+bool result

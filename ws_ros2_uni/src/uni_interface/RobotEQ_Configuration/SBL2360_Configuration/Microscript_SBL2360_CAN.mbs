@@ -1,0 +1,595 @@
+'' Configuration Parameter
+dim TorqueConstant as integer				' Set torque_constant ( default 1000: 1 Nm/Amps, DB59:50 = 0.05, Hubmotor: 400 = 0.4 )
+dim NumPolePairs as integer					' Set Pole Pairs ( default 2, DB59:3, Hubmotor: 10 )
+dim OperatingMode as integer				' Set motor operating mode ( default 0, DB59: 0(Trapezoidal) Hubmotor: 1(Sinusoidal) )
+dim SwapWinding as integer					' Set swap winding ( default 0: None, 1: Swapped, 2: Hall only Swapped, Hall+Encoder Swapped  )
+dim EncoderCountMode as boolean				' Set encoder count mode, true: relative, false: absolute
+dim MaxMotorAmpLimit as integer				' Set motor amps limit, ( DB59: 94 = 9.4 [A], Hubmotor: 80 = 8.0 )
+dim MaxMotorRpm as integer					' Set max speed (rpm) for relative speed commands, ( DB59: 3500 = 3500 RPM, Hubmotor: 250 = 250 RPM )
+dim MaxMotorAccRate as integer				' Set max acceleration rate ( default 1000: 100.0 RPM/S, 0 ~ 500000 )
+dim MaxMotorDecRate as integer				' Set max deceleration rate ( default 1000: 100.0 RPM/S, 0 ~ 500000 )
+dim FaultMotorDecRate as integer			' Set Fault Motor Deceleration Rate ( default 20000: 2000.0 RPM/S )
+
+dim P_Gain_Right as integer					' Set PID parameters (gain * 10) ( DB59: 0 = 0, Hubmotor: 20 = 2.0 )
+dim I_Gain_Right as integer					' set PID parameters (gain * 10) ( DB59: 20 = 2.0, Hubmotor: 50 = 5.0 )
+dim D_Gain_Right as integer					' set PID parameters (gain * 10) )( DB59: 0 = 0, Hubmotor: 0 = 0.0 )
+dim P_Gain_Left as integer					' set PID parameters (gain * 10) ( DB59: 0 = 0, Hubmotor: 20 = 2.0 )
+dim I_Gain_Left as integer					' set PID parameters (gain * 10) ( DB59: 20 = 2.0, Hubmotor: 50 = 5.0 )
+dim D_Gain_Left as integer					' set PID parameters (gain * 10) ( DB59: 0 = 0, Hubmotor: 0 = 0.0 )	
+
+dim MotorDirection_Right as integer			' Set motor direction, ( right 0: 0 direct )
+dim MotorDirection_Left as integer			' Set motor direction, ( left 1: 1 inverted )
+dim Encoder_PPR as integer					' Set encoder counts (ppr)
+Encoder_PPR = 1024
+dim PWM_frequency as integer				' Set PWM frequency ( default 160: 16.0kHz )
+
+dim EncoderCountRight as integer			' Set Encoder Count
+EncoderCountRight = 0
+dim EncoderCountLeft as integer				' Set Encoder Count
+EncoderCountLeft = 0
+	
+
+
+''''''''''''''''''''''''' Read Parameter
+' read motor encoder
+dim EncoderRight as integer
+dim EncoderRight_0 as integer
+dim EncoderRight_1 as integer
+dim EncoderRight_2 as integer
+dim EncoderRight_3 as integer
+dim EncoderLeft as integer
+dim EncoderLeft_0 as integer
+dim EncoderLeft_1 as integer
+dim EncoderLeft_2 as integer
+dim EncoderLeft_3 as integer
+
+' read motor ampere
+dim AmpRight as integer
+dim AmpRight_H as integer
+dim AmpRight_L as integer
+dim AmpLeft as integer
+dim AmpLeft_H as integer
+dim AmpLeft_L as integer
+
+' read motor power output
+dim PowerRight as integer
+dim PowerRight_H as integer
+dim PowerRight_L as integer
+dim PowerLeft as integer
+dim PowerLeft_H as integer
+dim PowerLeft_L as integer
+
+' read fault flags
+dim FaultFlags as integer
+dim FaultFlags_H as integer
+dim FaultFlags_L as integer
+
+'read runtime status flag
+dim RunTimeStatusFlagsRight as integer
+dim RunTimeStatusFlagsRight_H as integer
+dim RunTimeStatusFlagsRight_L as integer
+
+dim RunTimeStatusFlagsLeft as integer
+dim RunTimeStatusFlagsLeft_H as integer
+dim RunTimeStatusFlagsLeft_L as integer
+
+' read Status Flags
+dim StatusFlags as integer
+dim StatusFlags_H as integer
+dim StatusFlags_L as integer
+
+dim SBL_Header0 as integer
+dim SBL_Header1 as integer
+dim SBL_Header2 as integer
+dim SBL_Header3 as integer
+dim SendByteCount as integer
+
+'dim Count as integer
+dim Received_Header as integer
+dim ByteCount as integer
+dim Byte0 as integer
+dim Byte1 as integer
+dim Byte2 as integer
+dim Byte3 as integer
+dim Byte4 as integer
+dim Byte5 as integer
+dim Byte6 as integer
+dim Byte7 as integer
+
+
+dim EmgStopCmd as integer
+EmgStopCmd = 0
+dim EmgReleaseCmd as integer
+EmgReleaseCmd = 0
+dim EmgSafetyStopCmd as integer
+EmgSafetyStopCmd = 0
+dim Right_Cmdrpm as integer					' Set Cmd RPM
+Right_Cmdrpm = 0
+dim Left_Cmdrpm as integer					' Set Cmd RPM
+Left_Cmdrpm = 0
+dim EncoderFeedBackMode_Right as integer	' Set encoder mode (18 for feedback on motor1, 34 for feedback on motor2)
+EncoderFeedBackMode_Right = 18
+dim EncoderFeedBackMode_Left as integer		' Set encoder mode (18 for feedback on motor1, 34 for feedback on motor2)
+EncoderFeedBackMode_Left = 34
+dim ControlLoopMode as integer				' Set motor operating mode (1 for closed-loop speed)
+ControlLoopMode = 1
+
+
+SBL_Header0 = 0x050
+SBL_Header1 = 0x051
+SBL_Header2 = 0x052
+SBL_Header3 = 0x053	'ReadFaultFlags, ReadRunTimeStatusFlags, ReadStatusFlags	
+SBL_Header4 = 0x054	'torque_constant, numof_pole_pairs, operating mode, Swap Windings
+SBL_Header5 = 0x055
+SBL_Header6 = 0x056
+SBL_Header7 = 0x057
+SBL_Header8 = 0x058
+SBL_Header9 = 0x059
+SBL_Header10 = 0x05a
+SBL_Header11 = 0x05b
+
+SendByteCount = 8
+
+
+'goto SetConfig.
+'dim DataSendLoopTime as integer				
+'DataSendLoopTime = 10
+'settimercount(1, DataSendLoopTime)
+'SetTimerCount(1, 100)
+'settimerstate(1, 0)
+'setcommand(_R, 2)
+'setcommand(_R, 1)
+'setconfig(_SCRO, 2)
+print("Start SBL2360 \n\n\n")
+gosub SetMotorConfig
+wait(1000)
+
+top:
+	if (getvalue(_CF, 1) > 0) then' if one or more frame is received
+		gosub ReadRawCAN		
+	end if	
+'wait(1)
+goto top
+
+
+
+ReadRawCAN:
+	'print("ReadRawCAN \n")
+	Received_Header = getvalue(_CAN, 1)
+	ByteCount = getvalue(_CAN, 2)
+	Byte0 = getvalue(_CAN, 3)	'unsigned 8bit
+	Byte1 = getvalue(_CAN, 4)
+	Byte2 = getvalue(_CAN, 5)
+	Byte3 = getvalue(_CAN, 6)
+	
+	Byte4 = getvalue(_CAN, 7)
+	Byte5 = getvalue(_CAN, 8)
+	Byte6 = getvalue(_CAN, 9)
+	Byte7 = getvalue(_CAN, 10)	
+	
+	if(Received_Header = SBL_Header0) then
+		gosub Write_RPM
+		gosub SendCAN_Header0
+		gosub SendCAN_Header1	
+	elseif(Received_Header = SBL_Header2) then		
+		gosub SetConfigure0		
+	elseif(Received_Header = SBL_Header3) then
+		gosub SendCAN_Header3
+	
+	'' Configuration
+	elseif(Received_Header = SBL_Header4) then		
+		gosub SetConfigure1
+	elseif(Received_Header = SBL_Header5) then		
+		gosub SetConfigure2
+	elseif(Received_Header = SBL_Header6) then
+		gosub SetConfigure3
+	elseif(Received_Header = SBL_Header7) then
+		gosub SetConfigure4
+	elseif(Received_Header = SBL_Header8) then
+		gosub SetConfigure5
+	elseif(Received_Header = SBL_Header9) then
+		gosub SetConfigure6
+	elseif(Received_Header = SBL_Header10) then
+		gosub SetConfigure7
+	elseif(Received_Header = SBL_Header11) then
+		gosub SetConfigure8
+	end if
+	
+	Received_Header = 0
+	return
+
+Write_RPM:
+	'print("Write_RPM \n")
+	Right_Cmdrpm = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3 )
+	Left_Cmdrpm = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7 )
+	'print("Right_Cmdrpm: ") 
+	'print(Right_Cmdrpm)
+	'print("\n")
+	gosub SetRPM
+	return
+	
+	
+' Read & Send Encoder	
+SendCAN_Header0:
+	'print("SendCAN_Header0 \n")
+	gosub ReadEncoder
+	setcommand(_CS, 1, SBL_Header0)	' unsigned 8bit
+	setcommand(_CS, 3, EncoderRight_0)	'
+	setcommand(_CS, 4, EncoderRight_1)
+	setcommand(_CS, 5, EncoderRight_2)
+	setcommand(_CS, 6, EncoderRight_3)
+	setcommand(_CS, 7, EncoderLeft_0)
+	setcommand(_CS, 8, EncoderLeft_1)
+	setcommand(_CS, 9, EncoderLeft_2)
+	setcommand(_CS, 10, EncoderLeft_3)	
+	setcommand(_CS, 2, SendByteCount)		
+	return
+	
+	
+	
+' Read & Send Motor Amp	
+' Read & Send Motor Power	
+SendCAN_Header1:
+	'print("SendCAN_Header1 \n")
+	gosub ReadAmp
+	gosub ReadPower	
+	setcommand(_CS, 1, SBL_Header1)
+	setcommand(_CS, 3, AmpRight_H)
+	setcommand(_CS, 4, AmpRight_L)
+	setcommand(_CS, 5, AmpLeft_H)
+	setcommand(_CS, 6, AmpLeft_L)
+	setcommand(_CS, 7, PowerRight_H)
+	setcommand(_CS, 8, PowerRight_L)
+	setcommand(_CS, 9, PowerLeft_H)
+	setcommand(_CS, 10, PowerLeft_L)
+	setcommand(_CS, 2, SendByteCount)	
+	return
+
+SendCAN_Header2:
+	'print("SendCAN_Header2 \n")
+	return
+	
+SendCAN_Header3:
+	'print("SendCAN_Header3 \n")
+	gosub ReadFaultFlags
+	gosub ReadRunTimeStatusFlags
+	gosub ReadStatusFlags	
+	setcommand(_CS, 1, SBL_Header3)
+	setcommand(_CS, 3, FaultFlags_H)
+	setcommand(_CS, 4, FaultFlags_L)
+	setcommand(_CS, 5, RunTimeStatusFlagsRight_H)
+	setcommand(_CS, 6, RunTimeStatusFlagsRight_L)
+	setcommand(_CS, 7, RunTimeStatusFlagsLeft_H)
+	setcommand(_CS, 8, RunTimeStatusFlagsLeft_L)
+	setcommand(_CS, 9, StatusFlags_H)
+	setcommand(_CS, 10, StatusFlags_L)	
+	setcommand(_CS, 2, SendByteCount)	
+	return
+	
+ReadEncoder:
+	'print("Read Motor Encoder \n")
+	if(EncoderCountMode = true) then
+		'read Encoder Count Relative
+		EncoderRight = getvalue(_CR, 1)	'sighed 32bit
+		EncoderRight_0 = (EncoderRight >> 24) And 0xff
+		EncoderRight_1 = (EncoderRight >> 16) And 0xff
+		EncoderRight_2 = (EncoderRight >> 8) And 0xff
+		EncoderRight_3 = (EncoderRight) And 0xff		
+		EncoderLeft = getvalue(_CR, 2)	'sighed 32bit
+		EncoderLeft_0 = (EncoderLeft >> 24) And 0xff
+		EncoderLeft_1 = (EncoderLeft >> 16) And 0xff
+		EncoderLeft_2 = (EncoderLeft >> 8) And 0xff
+		EncoderLeft_3 = (EncoderLeft) And 0xff		
+	else		
+		EncoderRight = getvalue(_C, 1)	'sighed 32bit
+		EncoderRight_0 = (EncoderRight >> 24) And 0xff
+		EncoderRight_1 = (EncoderRight >> 16) And 0xff
+		EncoderRight_2 = (EncoderRight >> 8) And 0xff
+		EncoderRight_3 = (EncoderRight) And 0xff		
+		EncoderLeft = getvalue(_C, 2)	'sighed 32bit
+		EncoderLeft_0 = (EncoderLeft >> 24) And 0xff
+		EncoderLeft_1 = (EncoderLeft >> 16) And 0xff
+		EncoderLeft_2 = (EncoderLeft >> 8) And 0xff
+		EncoderLeft_3 = (EncoderLeft) And 0xff		
+	end if
+	return
+
+ReadAmp:	
+	'print("Read Motor Amps \n")
+	AmpRight = getvalue(_A, 1)		'sighed 16bit
+	AmpRight_H = (AmpRight >> 8) And 0xff
+	AmpRight_L = (AmpRight) And 0xff
+	AmpLeft = getvalue(_A, 2)		'sighed 16bit
+	AmpLeft_H = (AmpLeft >> 8) And 0xff
+	AmpLeft_L = (AmpLeft) And 0xff
+	return
+	
+ReadPower:
+	'print("Read Motor Power Output \n")
+	PowerRight = getvalue(_P, 1)		'sighed 16bit
+	PowerRight_H = (PowerRight >> 8) And 0xff
+	PowerRight_L = (PowerRight) And 0xff
+	PowerLeft = getvalue(_P, 2)			'sighed 16bit
+	PowerLeft_H = (PowerLeft >> 8) And 0xff
+	PowerLeft_L = (PowerLeft) And 0xff
+	return
+
+ReadFaultFlags:
+	'print("Read Fault Flags \n")
+	FaultFlags = getvalue(_FF, 1)
+	FaultFlags_H = (FaultFlags >> 8) And 0xff
+	FaultFlags_L = (FaultFlags) And 0xff
+	return
+	
+ReadRunTimeStatusFlags:
+	'print("Read Run Time Status Flags \n")
+	RunTimeStatusFlagsRight = getvalue(_FM, 1)
+	RunTimeStatusFlagsRight_H = (RunTimeStatusFlagsRight >> 8) And 0xff
+	RunTimeStatusFlagsRight_L = (RunTimeStatusFlagsRight) And 0xff
+	
+	RunTimeStatusFlagsLeft = getvalue(_FM, 2)
+	RunTimeStatusFlagsLeft_H = (RunTimeStatusFlagsLeft >> 8) And 0xff
+	RunTimeStatusFlagsLeft_L = (RunTimeStatusFlagsLeft) And 0xff
+	return
+
+ReadStatusFlags:
+	'print("Read Run Time Status Flags \n")
+	StatusFlags = getvalue(_FS, 1)	'unsigned 16bit
+	StatusFlags_H = (StatusFlags >> 8) And 0xff
+	StatusFlags_L = (StatusFlags) And 0xff
+	return
+	
+SetRPM:
+	if(ControlLoopMode = 0) then		' Open loop		
+		setcommand(_G, 1, Right_Cmdrpm)	'sighed 32bit
+		setcommand(_G, 2, Left_Cmdrpm)
+		'print("ControlLoopMode = 0 \n")
+	else								' closed loop		
+		setcommand(_S, 1, Right_Cmdrpm)	'sighed 32bit
+		setcommand(_S, 2, Left_Cmdrpm)
+	end if
+	return
+	
+
+
+SetConfigure0:
+	EmgStopCmd = Byte0
+	EmgReleaseCmd = Byte1
+	EmgSafetyStopCmd = Byte2
+	Right_Cmdrpm = Byte3
+	Left_Cmdrpm = Byte4
+	' = Byte5
+	' = Byte6
+	' = Byte7
+	if(EmgStopCmd = 1) then
+		gosub EmgStop
+	elseif(EmgReleaseCmd = 1) then
+		gosub EmgRelease
+	elseif(EmgSafetyStopCmd = 1) then
+		gosub SafetyStop	
+	end if	
+	return
+	
+SetConfigure1:
+	TorqueConstant = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3 )
+	print("TorqueConstant: ")
+	print(TorqueConstant )	
+	print(" \n")	
+	NumPolePairs = Byte4
+	OperatingMode = Byte5
+	SwapWinding = Byte6
+	if(Byte7 = 1) then
+		EncoderCountMode = true
+	else
+		EncoderCountMode = false
+	end if		
+	gosub SetMotorTorqueConstant
+	gosub SetNumPoleParis
+	gosub SetOperatingMode
+	gosub SetSwapWinding	
+	return
+
+SetConfigure2:
+	MaxMotorAmpLimit = (Byte0 << 8) + Byte1
+	MaxMotorRpm = (Byte2 << 8) + Byte3
+	MaxMotorAccRate = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7 )
+	gosub SetMotorAmpsLimit
+	gosub SetMaxRpm
+	gosub SetMaxAccRate
+	return
+	
+SetConfigure3:
+	MaxMotorDecRate = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3)
+	FaultMotorDecRate = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7)
+	gosub SetMaxDecRate
+	gosub SetFaultDecRate	
+	return
+
+SetConfigure4:
+	P_Gain_Right = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3)
+	I_Gain_Right = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7)
+	gosub SetPGainRight
+	gosub SetIGainRight	
+	return
+
+SetConfigure5:
+	D_Gain_Right = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3)
+	P_Gain_Left = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7)
+	gosub SetDGainRight
+	gosub SetPGainLeft	
+	return
+
+SetConfigure6:
+	I_Gain_Left = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3)
+	D_Gain_Left = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7)
+	gosub SetIGainLeft
+	gosub SetDGainLeft	
+	return
+
+SetConfigure7:
+	MotorDirection_Right = Byte0
+	MotorDirection_Left = Byte1
+	Encoder_PPR = (Byte2 << 8) + Byte3
+	PWM_frequency = (Byte4 << 8) + Byte5
+	' = Byte6
+	' = Byte7
+	gosub SetMotorDirection
+	gosub SetEncoderPPR
+	gosub SetPWMFreq
+	return
+			
+SetConfigure8:
+	print("SetConfigure8 \n ")
+	EncoderCountRight = (Byte0 << 24) + (Byte1 << 16) + (Byte2 << 8) + (Byte3)
+	EncoderCountLeft = (Byte4 << 24) + (Byte5 << 16) + (Byte6 << 8) + (Byte7)
+	gosub SetEncoderCount
+	return
+
+	
+	
+SetMotorConfig:
+	print("SetMotorConfig \n ")
+	EmgSafetyStopCmd = 1
+	gosub SafetyStop
+	
+	gosub SET_CAN	
+	'gosub SetMotorDirection
+	'gosub SetMotorTorqueConstant
+	'gosub SetNumPoleParis
+	'gosub SetOperatingMode
+	'gosub SetSwapWinding
+	'gosub SetMotorAmpsLimit
+	'gosub SetMaxRpm
+	'gosub SetMaxAccRate
+	'gosub SetMaxDecRate
+	'gosub SetFaultDecRate
+	'gosub SetPGainRight
+	'gosub SetIGainRight
+	'gosub SetDGainRight
+	'gosub SetPGainLeft
+	'gosub SetIGainLeft
+	'gosub SetDGainLeft	
+	'gosub SetEncoderPPR
+	'gosub SetPWMFreq
+	'gosub SetMotorOperatingMode
+	'gosub SetEncoderFeedbackMode
+	gosub EmgStop
+	wait(10)
+	gosub SetEncoderCount
+	wait(1000)
+	gosub EmgRelease
+''''RS485(beta)	
+	setconfig(_RSBR, 115200)	' RS485 BaudRate:115200
+''''Scripting
+	setconfig(_BRUN, 1)		' Script Auto-Start:Enable
+	setconfig(_SCRO, 2)		' Script Output Port:USB
+	wait(100)
+	return	
+	
+	
+
+	
+SetMotorTorqueConstant:
+	setconfig(_TNM, 1, TorqueConstant)
+	setconfig(_TNM, 2, TorqueConstant) 
+	return
+SetNumPoleParis:
+	setconfig(_BPOL, 1, NumPolePairs)
+	setconfig(_BPOL, 2, NumPolePairs)
+	return
+SetOperatingMode:
+	setconfig(_BMOD, 1, OperatingMode)
+	setconfig(_BMOD, 2, OperatingMode)
+	return	 
+SetSwapWinding:
+	setconfig(_SWD, 1, SwapWinding)
+	setconfig(_SWD, 2, SwapWinding)
+	return
+SetMotorAmpsLimit:
+	setconfig(_ALIM, 1, MaxMotorAmpLimit)	'set rated current on channel 1 = 9.4
+	setconfig(_ALIM, 2, MaxMotorAmpLimit)	'set rated current on channel 2 = 9.4
+	return
+SetMaxRpm:
+	setconfig(_MXRPM, 1, MaxMotorRpm)	'set rated rpm on channel 1 = 3500
+	setconfig(_MXRPM, 2, MaxMotorRpm)	'set rated rpm on channel 2 = 3500
+	return
+SetMaxAccRate:
+	setconfig(_MAC, 1, MaxMotorAccRate)	'set max acceleration rate on channel 1 = 1000 [rpm/s]
+	setconfig(_MAC, 2, MaxMotorAccRate)	'set max acceleration rate on channel 2 = 1000 [rpm/s]
+	return
+SetMaxDecRate:
+	setconfig(_MDEC, 1, MaxMotorDecRate)	'set max deceleration rate on channel 1 = 1000 [rpm/s]
+	setconfig(_MDEC, 2, MaxMotorDecRate)	'set max deceleration rate on channel 2 = 1000 [rpm/s]
+	return
+SetFaultDecRate:
+	setconfig(_EDEC, 1, FaultMotorDecRate)	'Set Channel Fault Motor Deceleration Rate[0 ~ 500000] [rpm/s]
+	setconfig(_EDEC, 2, FaultMotorDecRate)	'Set Channe2 Fault Motor Deceleration Rate[0 ~ 500000] [rpm/s]
+	return
+SetPGainRight:
+	setconfig(_KP, 1, P_Gain_Right)	'set proportional gain on channel 1
+	return
+SetIGainRight:
+	setconfig(_KI, 1, I_Gain_Right)	'set integral gain on channel 1
+	return
+SetDGainRight:
+	setconfig(_KD, 1, D_Gain_Right)	'set differential gain on channel 1
+	return
+SetPGainLeft:
+	setconfig(_KP, 2, P_Gain_Left)	'set proportional gain on channel 2
+	return
+SetIGainLeft:
+	setconfig(_KI, 2, I_Gain_Left)	'set integral gain on channel 2
+	return
+SetDGainLeft:
+	setconfig(_KD, 2, D_Gain_Left)	'set differential gain on channel 2
+	return
+SetMotorDirection:
+	setconfig(_MDIR, 1, MotorDirection_Right)	'set motor direction on channel 1
+	setconfig(_MDIR, 2, MotorDirection_Left)	'set motor direction on channel 2
+	return
+SetEncoderPPR:
+	setconfig(_EPPR, 1, Encoder_PPR)	'set encoder count(ppr) on channel 1
+	setconfig(_EPPR, 2, Encoder_PPR)	'set encoder count(ppr) on channel 2
+	return
+SetPWMFreq:
+	setconfig(_PWMF, PWM_frequency)	'set pwm frequency
+	return
+SetMotorOperatingMode:
+	setconfig(_MMOD, 1, ControlLoopMode)	'set closed-loop speed mode on channel 1
+	setconfig(_MMOD, 2, ControlLoopMode)	'set closed-loop speed mode on channel 2
+	return
+SetEncoderFeedbackMode:
+	setconfig(_EMOD, 1, EncoderFeedBackMode_Right)	'set encoder mode feedback on channel 1
+	setconfig(_EMOD, 2, EncoderFeedBackMode_Left)	'set encoder mode feedback on channel 2
+	return
+SafetyStop:
+	'print("SafetyStop \n ")
+	setcommand(_G, 1, 0)
+	setcommand(_G, 2, 0)
+	setcommand(_S, 1, 0)
+	setcommand(_S, 2, 0)
+	EmgSafetyStopCmd = 0
+	return	
+EmgRelease:
+	print("EmgRelease \n ")
+	setcommand(_MG, 1)
+	EmgReleaseCmd = 0
+	wait(1)
+	return		
+EmgStop:
+	print("EmgStop \n ")
+	setcommand(_EX, 1)
+	EmgStopCmd = 0
+	wait(1)
+	return	
+SET_CAN:	
+	setconfig(_CEN, 3)	' CAN Mode:RawCAN
+	setconfig(_CBR, 3)	' Bit Rate:250	
+	setconfig(_CLSN, 0)	' Listen Node:0(RawCAN Only)
+	'setconfig(_CHB, 0)	' Hearbeat(ms):0
+	return
+SetEncoderCount:
+	setcommand(_C, 1, EncoderCountRight)
+	setcommand(_C, 2, EncoderCountLeft)	
+	
+	return
