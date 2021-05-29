@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<robot name="uni100" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Init colour -->
+  <material name="black">
+      <color rgba="0.0 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="dark">
+    <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+
+  <material name="light_black">
+    <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.0 0.0 0.8 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.0 0.8 0.0 1.0"/>
+  </material>
+
+  <material name="grey">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <material name="orange">
+    <color rgba="1.0 0.4235 0.0392 1.0"/>
+  </material>
+
+  <material name="brown">
+    <color rgba="0.8706 0.8118 0.7647 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <joint name="heading_joint" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <child link="heading_link"/>
+    <parent link="base_link"/>
+  </joint>
+
+  <link name='heading_link'>
+    <visual name="heading_link_visual">     
+      <origin xyz="0.125 0 0.04" rpy="0 1.570796327 0"/>
+      <geometry>
+        <cylinder radius="0.02" length="0.25"/>        
+      </geometry>
+       <material name="orange"/>
+    </visual>
+  </link>
+
+  <link name='base_link'>
+    <visual name="base_link_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.25" length="0.05"/>
+      </geometry>
+       <material name="white"/>
+    </visual>
+  </link>
+
+  <!-- front laser -->
+  <joint name="front_laser_joint" type="fixed">
+    <axis xyz="1 0 0" />    
+    <origin xyz="0.27051 0 0.16869" rpy="0 0 0"/>
+    <child link="front_laser"/>
+    <parent link="base_link"/>
+  </joint>
+  <link name="front_laser"> </link>
+
+
+  <!-- Imu -->
+  <joint name="imu_joint" type="fixed">
+    <axis xyz="0 0 1" />
+    <origin xyz="0 0 0.253" rpy="0 0 0"/>
+    <child link="imu_link"/>
+    <parent link="base_link"/>
+  </joint>
+  <link name="imu_link"> </link>
+
+</robot>

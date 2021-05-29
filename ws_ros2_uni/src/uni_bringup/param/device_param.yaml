@@ -1,0 +1,112 @@
+usb_joy_node:
+  ros__parameters:
+    key_mode: 0
+    scale_angular: 0.2
+    scale_linear: 0.1
+    a_plusfactor_: 0.01
+    l_plusfactor_: 0.05
+    planning_pub_on: false
+    planning_pub_topic: "/RobotController"
+    vel_pub_on: true
+    vel_pub_topic: "/cmd_vel"
+    brake: 0
+    target_length: 3.0
+    target_acc: 0.08
+    odom_sub_on: false
+    odom_topic: "/odom"
+
+ros2_uni_node:
+  ros__parameters:
+    robotError_pub_on: true
+    robotError_pub_topic: "robot/ErrorMsg"
+
+sio_node:
+  ros__parameters:
+    robotError_pub_on: true
+    robotError_pub_topic: "robot/ErrorMsg"
+
+i2c_imu_node:
+  ros__parameters:
+    device: "/dev/i2c-0"
+    address: 0x28
+    frame_id: "imu_link"
+    imu_tf_pub_on: false
+
+can_bat_node:
+  ros__parameters:
+    Bat_vol_pub_on: true
+    Bat_vol_pub_topic: "/robot/battery/voltage"
+    Bat_charging_amp_pub_on: true
+    Bat_charging_amp_pub_topic: "/robot/battery/charging_ampere"
+    Bat_discharging_amp_pub_on: true
+    Bat_discharging_amp_pub_topic: "/robot/battery/discharging_ampere"
+    Bat_per_pub_on: true
+    Bat_per_pub_topic: "/robot/battery/percentage"
+    Bat_state_pub_on: true
+    Bat_state_pub_topic: "/robot/battery/charge_state"
+    bms_loadvoltage_pub_on: true
+    bms_loadvoltage_pub_topic: "/robot/bms/loadvoltage"
+    bms_chargervoltage_pub_on: true
+    bms_chargervoltage_pub_topic: "/robot/bms/chargervoltage"
+    bms_chargercurrent_pub_on: true
+    bms_chargercurrent_pub_topic: "/robot/bms/chargercurrent"
+    robotError_pub_on: true
+    robotError_pub_topic: "/robot/ErrorMsg"
+    charge_exception_msg_on: true
+    level_to_charge: 20.0
+
+can_mot_node:
+  ros__parameters:
+      # specify base frame
+    base_frame: "base_link"
+
+    # specify cmd_vel subscriber topic
+    cmdvel_topic: "/cmd_vel"
+    cmd_vel_quesize: 1
+
+    # specify odom topic
+    odom_pub_on: true
+    odom_topic: "/odom"
+    odom_frame: "odom"
+
+    open_loop: false  # specify whether to use open-loop motor speed control (as opposed to closed-loop)
+    wheel_radius: 0.065 # specify robot wheel circumference in meters[m], DB59: 0.07525, Hub Motor200: 0.065, Hub Motor250: 0.085
+    track_width: 0.3534
+    gear_ratio: 1.0
+    encoder_ppr: 1024 # specify pulse-per-revolution for motor encoders
+    encoder_cpr: 4096 # counts-per-revolution for motor encoders (ppr*4 for quadrature encoders)
+    torque_constant: 430  # default 1000: 1 Nm/Amps, DB59:50 = 0.05, 50ASM200: 430 = 0.43, 65ASM250: 760 = 0.76
+    numof_pole_pairs: 10  # default 2, DB59:3, 50ASM200: 10, 50ASM200: 15 -->
+    operating_mode: 1 # default 0, DB59: 0(Trapezoidal), 50ASM200: 1(Sinusoidal), 65ASM250: 1(Sinusoidal)
+    swap_winding: 0 # default 0: None, 1: Swapped, 2: Hall only Swapped, Hall+Encoder Swapped
+    mot_amps_limit: 75  # DB59: 94 = 9.4 [A], 50ASM200: 75 = 7.5 [A], 65ASM250: 85 = 8.5 [A]
+    max_speed_command: 250 # DB59: 3500 = 3500 RPM, 50ASM200: 250 = 250 RPM, 65ASM250: 200 = 200 RPM
+    max_acceleration_rate: 500  # default 500: 50.0 RPM/S, 0 ~ 500000
+    max_deceleration_rate: 700  # default 700: 70.0 RPM/S, 0 ~ 500000
+    fault_deceleration_rate: 20000  # default 20000: 2000.0 RPM/S
+    mot_direction_R: 0  # default 0, 0=direct, 1=inverted, DB59: 0, 50ASM200: 0, 65ASM250: 1
+    mot_direction_L: 1  # default 0, 0=direct, 1=inverted, DB59: 1, 50ASM200: 1, 65ASM250: 0
+    pwm_frequency: 160 # default 160=16.0kHz DB59: 250 = 25.0Khz, 50ASM200: 160 = 16.0Khz, 65ASM250: 160 = 16.0Khz
+    auto_sending_rate_ms: 10 #default 10, can sending period value
+    rightwheel_gain_p: 2  # DB59: 0 = 0.0, 50ASM200: 2 = 2.0, 65ASM250: 0 = 0.0
+    rightwheel_gain_i: 90 # DB59: 2 = 2.0, 50ASM200: 90 = 90.0, 65ASM250: 50 = 50.0
+    rightwheel_gain_d: 0  # DB59: 0 = 0.0, 50ASM200: 0 = 0.0, 65ASM250: 0 = 0.0
+    leftwheel_gain_p: 2   # DB59: 0 = 0.0, 50ASM200: 2 = 2.0, 65ASM250: 0 = 0.0
+    leftwheel_gain_i: 90  # DB59: 2 = 2.0, 50ASM200: 90 = 90.0, 65ASM250: 50 = 50.0
+    leftwheel_gain_d: 0   # DB59: 0 = 0.0, 50ASM200: 0 = 0.0, 65ASM250: 0 = 0.0 -->
+    # Publishing to topic robot/motor/encoder
+    encoder_pub_on: true
+    encoder_pub_topic: "robot/motor/encoder"
+    # Publishing to topic robot/motor/ampere
+    current_pub_on: true
+    current_pub_topic: "robot/motor/ampere"
+    # Publishing to topic robot/motor/power
+    current_pub_on: true
+    current_pub_topic: "robot/motor/power"
+    # Publishing to topic robot/ErrorMsg
+    robotError_pub_on: true
+    robotError_pub_topic: "/robot/ErrorMsg"
+    # Publishing to topic robot/ErrorMsg
+    emgbutton_sub_on: true
+    emgbutton_sub_topic: "/robot/button/emergency_state"
+    encoder_count_relative: true
